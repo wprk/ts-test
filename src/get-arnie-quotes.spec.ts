@@ -35,3 +35,27 @@ test('code to be executed in less than 400ms', async () => {
   expect(seconds).toBe(0);
   expect(nanos / 1000 / 1000).toBeLessThan(400);
 });
+
+describe('handles edge cases', () => {
+  const originalJsonParse = JSON.parse;
+
+  afterEach(() => {
+    JSON.parse = originalJsonParse;
+  })
+
+  test('if api response cannot be parsed return failure with unable to parse error', async () => {
+    expect.assertions(5);
+    JSON.parse = jest.fn().mockImplementation(() => {
+      throw new Error('Something went wrong')
+    })
+
+    const results = await getArnieQuotes(urls);
+    
+    expect(results.length).toBe(4);
+
+    expect(results[0]).toEqual({ 'FAILURE': 'Unable to parse quote response' });
+    expect(results[1]).toEqual({ 'FAILURE': 'Unable to parse quote response' });
+    expect(results[2]).toEqual({ 'FAILURE': 'Unable to parse quote response' });
+    expect(results[3]).toEqual({ 'FAILURE': 'Unable to parse quote response' });
+  })
+});
